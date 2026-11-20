@@ -76,7 +76,8 @@
     if (m) parts.push(`${m} mo${m > 1 ? "s" : ""}`);
     return parts.join(" ") || "1 mo";
   };
-  const fullYears = Math.floor(monthsBetween(2022, 2, curY, curM) / 12);
+  // Whole and half years since Feb 2022, e.g. 4.5 -> "4.5+"
+  const fullYears = Math.floor(monthsBetween(2022, 2, curY, curM) / 6) / 2;
   $$("[data-years]").forEach(el => { el.textContent = fullYears; });
   $$("[data-years-text]").forEach(el => { el.textContent = fullYears + "+"; });
   $$("[data-total-exp]").forEach(el => { el.textContent = fmtDur(monthsBetween(2022, 2, curY, curM) + 1); });
@@ -98,7 +99,6 @@
   function updateClocks() {
     const { h, m } = ist();
     const h12 = h % 12 || 12, ap = h < 12 ? "AM" : "PM";
-    $("#heroClock").textContent = `Ahmedabad ${h12}:${pad(m)} ${ap} IST`;
     $("#factTime").textContent = `· ${h12}:${pad(m)} ${ap} IST`;
     $$("[data-clock-short]").forEach(el => { el.textContent = `${h12}:${pad(m)}`; });
   }
@@ -670,7 +670,7 @@
     };
     const GROUPS = [
       ["Mobile", [["Flutter", "fit bloomz speedy"], [".NET MAUI", "psi sleep"], ["Xamarin.Forms", "sleep"], ["Flutter Web", "bloomz"], ["Android", "fit bloomz speedy psi sleep aimperior"], ["iOS", "fit bloomz speedy psi sleep"]]],
-      ["Languages", [["Dart", "fit bloomz speedy"], ["C#", "psi sleep"], ["XAML", "psi"], ["Python", "sketch s2v"], ["Java (Basic)", "aimperior"]]],
+      ["Languages", [["Dart", "fit bloomz speedy"], ["C#", "psi sleep"], ["XAML", "psi"], ["Python", "sketch s2v"]]],
       ["Architecture & state", [["MVVM", "bloomz speedy psi eventtan"], ["Riverpod", "bloomz speedy eventtan"], ["Bloc", ""], ["Provider", ""], ["Clean Architecture", ""], ["Repository Pattern", "psi"], ["Dependency Injection", "psi"], ["Freezed", "bloomz"]]],
       ["Backend & data", [["REST APIs", "fit bloomz speedy psi aimperior"], ["Dio", "bloomz"], ["WebSocket", "bloomz"], ["Firebase", "fit bloomz psi"], ["Cloud Firestore", "psi"], ["Firebase Cloud Messaging", "fit bloomz"], ["Firebase Crashlytics", "eventtan"], ["Firebase Analytics", "eventtan"], ["SQLite", "psi"], ["Hive", "bloomz"], ["Offline Sync", "psi sleep"], ["MongoDB", ""], ["AWS S3", "bloomz"], ["Google Cloud Storage", "psi"], ["Couchbase", "psi"]]],
       ["Platform features", [["Push Notifications", "fit bloomz"], ["Deep Linking", "fit"], ["Google Maps", "speedy"], ["Google ML Kit (OCR)", "fit"], ["Bluetooth Low Energy", "sleep"], ["Background Services", "bloomz sleep"], ["Method Channels", ""], ["Localization & RTL", "bloomz"], ["SSO", "bloomz"], ["Role-Based Access", "bloomz"]]],
@@ -719,12 +719,13 @@
       rio.observe(el);
     });
     const countUp = el => {
-      const target = parseInt(el.textContent, 10);
+      const raw = el.textContent.trim(), target = parseFloat(raw);
+      const decimals = (raw.split(".")[1] || "").length;
       if (!target) return;
       const t0 = performance.now(), dur = 1200;
       const step = now => {
         const p = Math.min(1, (now - t0) / dur);
-        el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+        el.textContent = (target * (1 - Math.pow(1 - p, 3))).toFixed(decimals);
         if (p < 1) requestAnimationFrame(step);
       };
       requestAnimationFrame(step);
